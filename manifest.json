@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "DeepSeek Flash · 网页悬浮 AI",
+  "version": "1.0.0",
+  "description": "在任意网页内嵌可拖动、可缩放的 AI 悬浮窗：网页截图、上传图片、多轮对话，直连你自己配置的 DeepSeek Flash API。",
+  "minimum_chrome_version": "102",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "显示 / 隐藏 AI 悬浮窗（Alt+Shift+D）"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "commands": {
+    "toggle-panel": {
+      "suggested_key": {
+        "default": "Alt+Shift+D"
+      },
+      "description": "显示 / 隐藏 AI 悬浮窗"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["markdown.js", "image.js", "screenshot.js", "ui.js", "content.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["content.css"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

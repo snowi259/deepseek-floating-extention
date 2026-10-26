@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepSeek Flash 悬浮 AI · 设置</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main class="page">
+    <header class="page-head">
+      <div class="brand">
+        <span class="brand-logo">D</span>
+        <div>
+          <h1>DeepSeek Flash 悬浮 AI</h1>
+          <p class="sub">所有配置只保存在你的浏览器本地，不会上传到任何第三方服务器。</p>
+        </div>
+      </div>
+    </header>
+
+    <form id="settings-form" autocomplete="off">
+      <!-- ============ 接口 ============ -->
+      <section class="card">
+        <h2>接口配置</h2>
+        <p class="hint">使用 OpenAI 兼容的 Chat Completions 接口。下面的默认值适配 DeepSeek 官方 API。</p>
+
+        <div class="field">
+          <label for="apiBaseUrl">API Base URL</label>
+          <input id="apiBaseUrl" name="apiBaseUrl" type="text" spellcheck="false"
+                 placeholder="https://api.deepseek.com/chat/completions">
+          <p class="hint">
+            完整地址，通常以 <code>/chat/completions</code> 结尾。只填域名时会自动补全。
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="apiKey">API Key</label>
+          <div class="input-row">
+            <input id="apiKey" name="apiKey" type="password" spellcheck="false" placeholder="sk-...">
+            <button type="button" id="toggle-key" class="btn btn-ghost">显示</button>
+          </div>
+          <p class="hint">
+            仅保存在 <code>chrome.storage.local</code>，请求时由扩展后台直接发往你填写的地址。
+            源码中不包含任何密钥。
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="model">模型 ID</label>
+          <div class="input-row">
+            <input id="model" name="model" type="text" spellcheck="false" placeholder="deepseek-flash">
+            <select id="model-preset" class="preset">
+              <option value="">选择常用模型…</option>
+              <option value="deepseek-flash">deepseek-flash</option>
+              <option value="deepseek-chat">deepseek-chat</option>
+              <option value="deepseek-reasoner">deepseek-reasoner</option>
+              <option value="qwen-vl-max">qwen-vl-max</option>
+              <option value="gpt-4o-mini">gpt-4o-mini</option>
+            </select>
+          </div>
+          <p class="hint">
+            可以自由填写服务商提供的任意模型 ID。需要「截图识题」时，请选择支持视觉输入的模型。
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="provider-preset">服务商模板（可选）</label>
+          <select id="provider-preset">
+            <option value="">自定义 / 不套用模板</option>
+            <option value="deepseek">DeepSeek 官方 API</option>
+            <option value="dashscope">阿里云百炼（Qwen 兼容模式）</option>
+            <option value="openai">OpenAI</option>
+            <option value="cf">Cloudflare Workers AI（OpenAI 兼容）</option>
+          </select>
+          <p class="hint">套用模板会覆盖上面的地址、模型和思考参数形式，套用后仍可手动修改。</p>
+        </div>
+      </section>
+
+      <!-- ============ 生成参数 ============ -->
+      <section class="card">
+        <h2>生成参数</h2>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="maxTokens">最大输出 Token</label>
+            <input id="maxTokens" name="maxTokens" type="number" min="1" max="200000" step="1">
+            <p class="hint">回答被截断时调大它（例如 4096）。</p>
+          </div>
+
+          <div class="field">
+            <label for="timeoutMs">请求超时时间（秒）</label>
+            <input id="timeoutMs" name="timeoutMs" type="number" min="3" max="600" step="1">
+            <p class="hint">等待首个字或两次数据之间的最长时间，超时会自动中断并提示。</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="temperature">Temperature <span id="temp-value" class="tag">0.7</span></label>
+          <input id="temperature" name="temperature" type="range" min="0" max="2" step="0.1">
+          <p class="hint">越低越稳定，越高越发散。解题场景建议 0.2 ~ 0.7。</p>
+        </div>
+
+        <label class="switch">
+          <input id="stream" name="stream" type="checkbox">
+          <span>流式输出（逐字显示回答）</span>
+        </label>
+      </section>
+
+      <!-- ============ 思考模式 ============ -->
+      <section class="card">
+        <h2>思考模式</h2>
+        <p class="hint">
+          部分模型会先输出「思考过程」。本插件不会把思考过程当成最终答案显示，
+          只会把它折叠在答案下方。
+        </p>
+
+        <div class="field">
+          <label for="thinkingMode">思考模式</label>
+          <select id="thinkingMode" name="thinkingMode">
+            <option value="disabled">关闭（请求中声明关闭思考）</option>
+            <option value="enabled">开启</option>
+            <option value="auto">自动（不发送任何思考参数，由服务端决定）</option>
+          </select>
+          <p class="hint">
+            选择「关闭」时，插件会按下面的参数形式发送关闭指令。如果服务端拒绝该参数，
+            插件会自动去掉参数重试，并在悬浮窗里明确提示「无法确认思考模式是否已关闭」——
+            不会假装已经关闭。
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="thinkingStyle">思考参数形式</label>
+          <select id="thinkingStyle" name="thinkingStyle">
+            <option value="auto">自动按域名判断（推荐）</option>
+            <option value="thinking_object">thinking: {"type": "disabled"} —— DeepSeek 官方</option>
+            <option value="enable_thinking">enable_thinking: false —— Qwen / DashScope / vLLM</option>
+            <option value="reasoning_effort">reasoning_effort: "minimal" —— OpenAI 推理模型</option>
+            <option value="none">不发送任何思考参数</option>
+          </select>
+          <p class="hint">
+            不同服务商字段不同，没有通用写法。<code>enable_thinking</code> 只会在你明确选择时发送，
+            不会作为所有模型的通用参数。
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="systemPrompt">系统提示词（可选）</label>
+          <textarea id="systemPrompt" name="systemPrompt" rows="3"
+                    placeholder="例如：你是一位耐心的理科老师，回答要分步骤、给出关键公式。"></textarea>
+        </div>
+      </section>
+
+      <!-- ============ 外观 ============ -->
+      <section class="card">
+        <h2>外观</h2>
+        <div class="field">
+          <label for="theme">主题</label>
+          <select id="theme" name="theme">
+            <option value="auto">跟随系统</option>
+            <option value="light">浅色</option>
+            <option value="dark">深色</option>
+          </select>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary">保存设置</button>
+        <button type="button" id="test-btn" class="btn">测试连接</button>
+        <button type="button" id="reset-btn" class="btn btn-ghost">恢复默认</button>
+        <span id="status" class="status"></span>
+      </div>
+
+      <div id="test-result" class="result" hidden></div>
+    </form>
+
+    <section class="card tips">
+      <h2>使用小贴士</h2>
+      <ol>
+        <li>在任意网页点击浏览器工具栏上的插件图标（或按 <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>D</kbd>），悬浮窗会出现在网页右侧。</li>
+        <li>悬浮窗里可以拖动标题栏移动、拖右下角调整大小，位置和尺寸会自动记住。</li>
+        <li>「📷 可视区」截当前屏幕，「🖼 整页」滚动拼接整个网页，「✂️ 区域」拖动选择一部分。</li>
+        <li>先点「🎯 解题」会自动填入解题提示词，你可以改完再发送。</li>
+        <li>截图识题需要支持视觉输入的模型，否则接口会返回错误——插件会把错误原文显示出来。</li>
+      </ol>
+    </section>
+
+    <footer class="foot">
+      <span>API 文档：</span>
+      <a href="https://api-docs.deepseek.com/" target="_blank" rel="noopener noreferrer">DeepSeek 官方文档</a>
+      <span class="sep">·</span>
+      <span>本扩展不收集任何数据，也不经过任何中转服务器。</span>
+    </footer>
+  </main>
+
+  <script type="module" src="options.js"></script>
+</body>
+</html>
